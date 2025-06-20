@@ -315,7 +315,12 @@ function deleteGroup(groupName) {
  * 渲染分组列表
  */
 function renderGroups() {
-    const container = document.getElementById('groups-container');
+    const container = document.getElementById('groups-list');
+    
+    if (!container) {
+        console.error('找不到分组列表容器元素');
+        return;
+    }
     
     if (commandGroups.length === 0) {
         container.innerHTML = `
@@ -592,8 +597,27 @@ function executeRealCommand(command) {
                 result += data.stdout;
             }
             
-            if (data.stderr) {
-                result += data.stderr ? '\n错误输出:\n' + data.stderr : '';
+            // 只有在有stderr且不是常见的警告信息时才显示错误输出
+            if (data.stderr && data.stderr.trim()) {
+                const stderr = data.stderr.trim();
+                // 过滤掉常见的非错误信息
+                const isWarningOnly = stderr.includes('warning:') || 
+                                    stderr.includes('注意:') ||
+                                    stderr.includes('提示:') ||
+                                    stderr.includes('deprecated') ||
+                                    stderr.startsWith('zsh:') ||
+                                    stderr.includes('alias') ||
+                                    stderr.includes('function');
+                
+                if (isWarningOnly) {
+                    // 如果只是警告信息，以较温和的方式显示
+                    result += result ? '\n\n' : '';
+                    result += '⚠️ 提示信息:\n' + stderr;
+                } else {
+                    // 真正的错误信息
+                    result += result ? '\n\n' : '';
+                    result += '❌ 错误输出:\n' + stderr;
+                }
             }
             
             if (!result.trim()) {
@@ -602,11 +626,11 @@ function executeRealCommand(command) {
             
             // 显示当前工作目录
             if (data.currentDirectory) {
-                result += `\n\n当前目录: ${data.currentDirectory}`;
+                result += `\n\n📁 当前目录: ${data.currentDirectory}`;
             }
             
-            result += `\n执行时间: ${formatDate(data.timestamp)}`;
-            result += '\n状态: 成功';
+            result += `\n⏰ 执行时间: ${formatDate(data.timestamp)}`;
+            result += '\n✅ 状态: 成功';
             
             outputElement.textContent = result;
             
@@ -619,7 +643,7 @@ function executeRealCommand(command) {
             addToHistory(command, result);
         } else {
             // 执行失败
-            const errorResult = `命令执行失败\n\n错误信息: ${data.error}\n执行时间: ${formatDate(data.timestamp)}\n状态: 失败`;
+            const errorResult = `❌ 命令执行失败\n\n🚫 错误信息: ${data.error}\n⏰ 执行时间: ${formatDate(data.timestamp)}\n❌ 状态: 失败`;
             outputElement.textContent = errorResult;
             
             // 添加到执行历史
@@ -628,7 +652,7 @@ function executeRealCommand(command) {
     })
     .catch(error => {
         console.error('API调用失败:', error);
-        const errorResult = `网络错误或服务器未启动\n\n错误信息: ${error.message}\n\n请确保：\n1. Node.js后端服务已启动 (npm start)\n2. 服务运行在 http://localhost:3000\n3. 网络连接正常`;
+        const errorResult = `🌐 网络错误或服务器未启动\n\n🚫 错误信息: ${error.message}\n\n💡 请确保：\n1. Node.js后端服务已启动 (npm start)\n2. 服务运行在 http://localhost:3000\n3. 网络连接正常`;
         outputElement.textContent = errorResult;
         
         // 添加到执行历史

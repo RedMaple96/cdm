@@ -106,10 +106,23 @@ function executeCommand(command, callback) {
         shell: '/bin/zsh' // 使用zsh shell
     };
     
-    // 通过交互式shell执行命令以加载用户配置和别名
-    const shellCommand = `/bin/zsh -i -c "source ~/.zshrc 2>/dev/null && ${command}"`;
+    // 优化shell命令执行方式，减少不必要的stderr输出
+    let shellCommand;
     
-    exec(shellCommand, {...options, shell: false}, (error, stdout, stderr) => {
+    // 对于简单命令，直接执行；对于复杂命令，使用交互式shell
+    const simpleCommands = ['ls', 'pwd', 'date', 'whoami', 'echo', 'cat', 'head', 'tail', 'grep', 'find', 'which'];
+    const commandName = command.trim().split(' ')[0];
+    
+    if (simpleCommands.includes(commandName)) {
+        // 简单命令直接执行，避免shell配置文件的警告
+        shellCommand = command;
+    } else {
+        // 复杂命令使用交互式shell，但抑制配置文件错误
+        shellCommand = `/bin/zsh -i -c "source ~/.zshrc 2>/dev/null; source ~/.zprofile 2>/dev/null; ${command} 2>&1"`;
+        options.shell = false;
+    }
+    
+    exec(shellCommand, options, (error, stdout, stderr) => {
         if (error) {
             // 如果是超时错误
             if (error.code === 'ETIMEDOUT') {

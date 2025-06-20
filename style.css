@@ -129,6 +129,20 @@ header h1 {
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
+.input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.input-group input {
+    flex: 1;
+}
+
+.input-group .btn {
+    white-space: nowrap;
+}
+
 /* 按钮样式 */
 .btn {
     padding: 12px 24px;
@@ -151,6 +165,17 @@ header h1 {
     background: #0056b3;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
 }
 
 .btn-success {
@@ -357,6 +382,34 @@ header h1 {
     padding: 10px;
     background: white;
     border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.group-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.group-item:hover {
+    background: #e9ecef;
+}
+
+.group-name {
+    font-weight: 500;
+    color: #495057;
+    margin-right: 10px;
+}
+
+.group-item .btn-sm {
+    padding: 4px 8px;
+    font-size: 11px;
     border-radius: 4px;
 }
 
