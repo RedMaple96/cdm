@@ -1,0 +1,717 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* 头部样式 */
+header {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em;
+    font-weight: 300;
+    letter-spacing: 2px;
+}
+
+/* 页签样式 */
+.tabs {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 20px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #6c757d;
+}
+
+.tab-button:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.tab-button.active {
+    background: white;
+    color: #007bff;
+    border-bottom: 3px solid #007bff;
+}
+
+/* 页签内容样式 */
+.tab-content {
+    display: none;
+    padding: 30px;
+    min-height: 600px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 配置模块样式 */
+.config-section h2,
+.execute-section h2 {
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 2em;
+    font-weight: 300;
+}
+
+.add-command-form {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border-left: 4px solid #007bff;
+}
+
+.add-command-form h3 {
+    color: #495057;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* 按钮样式 */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #1e7e34;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+    transform: translateY(-1px);
+}
+
+/* 命令列表样式 */
+.command-list {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.command-list h3 {
+    background: #f8f9fa;
+    padding: 20px;
+    margin: 0;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+    font-size: 1.2em;
+}
+
+.command-item {
+    padding: 20px;
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.3s ease;
+}
+
+.command-item:hover {
+    background: #f8f9fa;
+}
+
+.command-item:last-child {
+    border-bottom: none;
+}
+
+.command-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.command-name {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.command-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.command-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 10px;
+    border-left: 3px solid #007bff;
+}
+
+.command-description {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* 执行模块样式 */
+
+.execution-result {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 30px;
+}
+
+.execution-result h3 {
+    background: #f8f9fa;
+    padding: 20px;
+    margin: 0;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+    font-size: 1.2em;
+}
+
+#result-container {
+    padding: 20px;
+}
+
+#command-output {
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 20px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* 执行历史样式 */
+.execution-history {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.execution-history h3 {
+    background: #f8f9fa;
+    padding: 20px;
+    margin: 0;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+    font-size: 1.2em;
+}
+
+.history-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-time {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.history-command {
+    font-family: 'Courier New', monospace;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #495057;
+}
+
+/* 分组管理样式 */
+.group-management {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.group-management h3 {
+    margin: 0 0 15px 0;
+    color: #495057;
+    font-size: 1.1em;
+}
+
+.group-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.groups-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 40px;
+    padding: 10px;
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.group-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.group-tag .delete-group {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 3px;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.group-tag .delete-group:hover {
+    color: #ffcccc;
+}
+
+/* 命令列表头部样式 */
+.command-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.command-list-header h3 {
+    margin: 0;
+    color: #495057;
+    font-size: 1.2em;
+}
+
+.view-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.view-controls .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: 1px solid #ced4da;
+    background: white;
+    color: #6c757d;
+}
+
+.view-controls .btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* 分组视图样式 */
+.command-group {
+    margin-bottom: 25px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.command-group-header {
+    background: #f8f9fa;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.command-group-title {
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+}
+
+.command-group-count {
+    background: #6c757d;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.command-group-items {
+    background: white;
+}
+
+.command-group-items .command-item {
+    border-bottom: 1px solid #f1f3f4;
+    margin: 0;
+}
+
+.command-group-items .command-item:last-child {
+    border-bottom: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container {
+        margin: 10px;
+        border-radius: 10px;
+    }
+    
+    .tab-content {
+        padding: 20px;
+    }
+    
+    .command-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .command-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .command-list-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .view-controls {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .group-controls {
+        gap: 10px;
+    }
+    
+    .groups-display {
+        min-height: 60px;
+    }
+}
+
+/* 空状态样式 */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3em;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+/* 加载动画 */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 统一命令执行区域样式 */
+.unified-execute {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.unified-execute h3 {
+    margin: 0 0 15px 0;
+    color: #495057;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+/* 当前目录显示样式 */
+.current-directory {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #e3f2fd;
+    border-radius: 4px;
+    border-left: 4px solid #2196f3;
+}
+
+.directory-label {
+    font-weight: bold;
+    color: #1976d2;
+    font-size: 14px;
+}
+
+#current-directory-display {
+    font-family: 'Courier New', monospace;
+    background: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    flex: 1;
+    font-size: 13px;
+    color: #333;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn-small:hover {
+    background: #1976d2;
+}
+
+/* 模式切换标签页样式 */
+.mode-tabs {
+    display: flex;
+    margin-bottom: 15px;
+    background: #e9ecef;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.mode-tab {
+    flex: 1;
+    padding: 10px 15px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mode-tab:hover {
+    background: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+}
+
+.mode-tab.active {
+    background: #007bff;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+/* 输入模式样式 */
+.input-mode {
+    display: none;
+}
+
+.input-mode.active {
+    display: block;
+}
+
+.command-input-group {
+    margin-bottom: 15px;
+}
+
+.command-input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.command-input, .command-select {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+}
+
+.command-input:focus, .command-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.command-select {
+    font-family: inherit;
+}
+
+/* 统一提示样式 */
+.unified-tips {
+    font-size: 12px;
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+    padding: 10px;
+    background: rgba(0, 123, 255, 0.05);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 123, 255, 0.1);
+}
+
+/* 响应式设计 - 统一执行命令 */
+@media (max-width: 768px) {
+    .current-directory {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    #current-directory-display {
+        width: 100%;
+        word-break: break-all;
+    }
+    
+    .mode-tabs {
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group button {
+        width: 100%;
+    }
+    
+    .unified-execute {
+        padding: 20px;
+    }
+}

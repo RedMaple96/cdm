@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>终端命令管理工具</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>终端命令管理工具</h1>
+        </header>
+        
+        <!-- 页签导航 -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('config')">命令配置</button>
+            <button class="tab-button" onclick="switchTab('execute')">命令执行</button>
+        </div>
+        
+        <!-- 命令配置模块 -->
+        <div id="config-tab" class="tab-content active">
+            <div class="config-section">
+                <h2>命令配置管理</h2>
+                
+                <!-- 分组管理 -->
+                <div class="group-management">
+                    <h3>分组管理</h3>
+                    <div class="group-controls">
+                        <div class="form-group">
+                            <label for="new-group-name">新建分组:</label>
+                            <div class="input-group">
+                                <input type="text" id="new-group-name" placeholder="输入分组名称" onkeypress="handleGroupNameKeyPress(event)">
+                                <button onclick="addGroup()" class="btn btn-secondary">创建分组</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>现有分组:</label>
+                            <div id="groups-list" class="groups-display">
+                                <!-- 分组列表将在这里动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 添加命令表单 -->
+                <div class="add-command-form">
+                    <h3>添加新命令</h3>
+                    <div class="form-group">
+                        <label for="command-group">所属分组:</label>
+                        <select id="command-group">
+                            <option value="">默认分组</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="command-name">命令名称:</label>
+                        <input type="text" id="command-name" placeholder="输入命令名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="command-content">命令内容:</label>
+                        <textarea id="command-content" placeholder="输入命令内容" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="command-description">命令描述:</label>
+                        <input type="text" id="command-description" placeholder="输入命令描述">
+                    </div>
+                    <button onclick="addCommand()" class="btn btn-primary">添加命令</button>
+                </div>
+                
+                <!-- 命令列表 -->
+                <div class="command-list">
+                    <div class="command-list-header">
+                        <h3>已配置命令</h3>
+                        <div class="view-controls">
+                            <button id="group-view-btn" class="btn btn-small active" onclick="switchView('group')">分组视图</button>
+                            <button id="list-view-btn" class="btn btn-small" onclick="switchView('list')">列表视图</button>
+                        </div>
+                    </div>
+                    <div id="commands-container">
+                        <!-- 命令项将在这里动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 命令执行模块 -->
+        <div id="execute-tab" class="tab-content">
+            <div class="execute-section">
+                <h2>命令执行</h2>
+                
+                <!-- 统一命令执行区域 -->
+                <div class="unified-execute">
+                    <h3>🚀 命令执行</h3>
+                    
+                    <!-- 当前目录显示 -->
+                    <div class="current-directory">
+                        <span class="directory-label">当前目录:</span>
+                        <span id="current-directory-display">加载中...</span>
+                        <button onclick="refreshCurrentDirectory()" class="btn btn-small">刷新</button>
+                    </div>
+                    
+                    <!-- 命令输入方式选择 -->
+                    <div class="command-input-mode">
+                        <div class="mode-tabs">
+                            <button id="quick-mode-tab" class="mode-tab active" onclick="switchInputMode('quick')">💨 快速输入</button>
+                            <button id="preset-mode-tab" class="mode-tab" onclick="switchInputMode('preset')">📋 预配置命令</button>
+                        </div>
+                        
+                        <!-- 快速输入模式 -->
+                        <div id="quick-input-mode" class="input-mode active">
+                            <div class="command-input-group">
+                                <label for="quick-command">输入命令:</label>
+                                <div class="input-group">
+                                    <input type="text" id="quick-command" placeholder="直接输入要执行的命令，如: ls -la" class="command-input">
+                                    <button onclick="executeUnifiedCommand()" class="btn btn-success">执行</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 预配置命令模式 -->
+                        <div id="preset-input-mode" class="input-mode">
+                            <div class="command-input-group">
+                                <label for="select-command">选择命令:</label>
+                                <div class="input-group">
+                                    <select id="select-command" class="command-select" onchange="loadSelectedCommand()">
+                                        <option value="">请选择要执行的命令</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="command-input-group">
+                                <label for="preset-command">命令内容 (可编辑):</label>
+                                <div class="input-group">
+                                    <input type="text" id="preset-command" placeholder="选择预配置命令后可在此编辑" class="command-input">
+                                    <button onclick="executeUnifiedCommand()" class="btn btn-success">执行</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 使用提示 -->
+                        <div class="unified-tips">
+                            💡 提示：您可以快速输入命令或选择预配置命令执行，cd命令会保持目录状态
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 执行结果显示 -->
+                <div class="execution-result">
+                    <h3>执行结果</h3>
+                    <div id="result-container">
+                        <pre id="command-output">等待执行命令...</pre>
+                    </div>
+                </div>
+                
+                <!-- 执行历史 -->
+                <div class="execution-history">
+                    <h3>执行历史</h3>
+                    <div id="history-container">
+                        <!-- 执行历史将在这里显示 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
