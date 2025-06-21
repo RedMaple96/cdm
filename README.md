@@ -56,37 +56,6 @@
    - 支持cd命令切换目录
    - 目录状态在会话中保持
 
-## 🔒 安全特性
-
-### 命令黑名单
-
-以下命令被禁止执行以确保系统安全：
-
-```
-rm, rmdir, mv, cp, chmod, chown, sudo, su,
-passwd, useradd, userdel, groupadd, groupdel,
-mount, umount, fdisk, mkfs, fsck,
-iptables, systemctl, service, kill, killall,
-reboot, shutdown, halt, poweroff,
-dd, shred, wipefs, crontab
-```
-
-### 危险操作符检测
-
-以下操作符和函数被禁止：
-
-```
-&&, ||, ;, |, >, >>, <, `, $(
-eval, exec, system, curl, wget, nc, netcat
-```
-
-### 交互式命令限制
-
-直接执行交互式命令（如`python`、`node`）被禁止，但支持：
-- 执行脚本文件：`python script.py`
-- 执行代码：`python -c "print('Hello')"`
-- 查看版本：`python --version`
-
 ### 技术栈
 
 - **后端**：Node.js + Express
