@@ -85,6 +85,59 @@ header h1 {
     font-weight: 300;
 }
 
+/* 数据管理样式 */
+.data-management {
+    background: #e8f5e8;
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border-left: 4px solid #28a745;
+}
+
+.data-management h3 {
+    color: #155724;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.data-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.data-controls .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.data-controls .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.data-info {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #c3e6cb;
+}
+
+.data-info small {
+    color: #155724;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
 .add-command-form {
     background: #f8f9fa;
     padding: 25px;
@@ -279,38 +332,101 @@ header h1 {
 
 /* 执行模块样式 */
 
-.execution-result {
+
+
+/* 运行日志样式 */
+.running-log {
     background: white;
     border-radius: 10px;
     border: 1px solid #e9ecef;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
-.execution-result h3 {
+.log-header {
     background: #f8f9fa;
-    padding: 20px;
+    padding: 15px 20px;
     margin: 0;
     border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.log-header h3 {
+    margin: 0;
     color: #495057;
     font-size: 1.2em;
 }
 
-#result-container {
-    padding: 20px;
+.log-controls {
+    display: flex;
+    gap: 8px;
 }
 
-#command-output {
-    background: #2c3e50;
-    color: #ecf0f1;
-    padding: 20px;
-    border-radius: 8px;
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    line-height: 1.5;
-    max-height: 400px;
+.log-controls .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+#log-container {
+    max-height: 300px;
     overflow-y: auto;
-    white-space: pre-wrap;
+    background: #1e1e1e;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+#running-log-content {
+    padding: 10px;
+}
+
+.log-entry {
+    margin-bottom: 4px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 2px 0;
+}
+
+.log-time {
+    color: #888;
+    font-size: 11px;
+    white-space: nowrap;
+    min-width: 80px;
+}
+
+.log-message {
+    flex: 1;
     word-wrap: break-word;
+}
+
+.log-info .log-message {
+    color: #4fc3f7;
+}
+
+.log-success .log-message {
+    color: #81c784;
+}
+
+.log-warning .log-message {
+    color: #ffb74d;
+}
+
+.log-error .log-message {
+    color: #e57373;
+}
+
+.log-command .log-message {
+    color: #fff176;
+    font-weight: bold;
+}
+
+.log-output .log-message {
+    color: #e0e0e0;
+    white-space: pre-wrap;
 }
 
 /* 执行历史样式 */
@@ -766,5 +882,38 @@ header h1 {
     
     .unified-execute {
         padding: 20px;
+    }
+    
+    /* 运行日志响应式样式 */
+    .log-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .log-controls {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .log-controls .btn {
+        flex: 1;
+        text-align: center;
+    }
+    
+    #log-container {
+        max-height: 250px;
+        font-size: 12px;
+    }
+    
+    .log-time {
+        min-width: 70px;
+        font-size: 10px;
+    }
+    
+    .log-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
     }
 }

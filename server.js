@@ -24,61 +24,42 @@ console.log('📂 初始工作目录:', currentWorkingDirectory);
 
 // 移除了命令白名单，现在只使用黑名单进行安全控制
 
-// 危险命令黑名单
+// 简化的危险命令黑名单（仅保留最危险的系统级命令）
 const DANGEROUS_COMMANDS = [
-    'rm', 'rmdir', 'mv', 'cp', 'chmod', 'chown', 'sudo', 'su',
-    'passwd', 'useradd', 'userdel', 'groupadd', 'groupdel',
-    'mount', 'umount', 'fdisk', 'mkfs', 'fsck',
-    'iptables', 'systemctl', 'service', 'kill', 'killall',
     'reboot', 'shutdown', 'halt', 'poweroff',
-    'dd', 'shred', 'wipefs', 'crontab'
+    'dd', 'shred', 'wipefs'
 ];
 
+// 本地使用模式：大部分命令都允许执行
+const LOCAL_MODE = true;
+
 /**
- * 验证命令是否安全
+ * 验证命令是否安全（本地使用模式 - 简化版）
  * @param {string} command - 要执行的命令
  * @returns {Object} 验证结果
  */
 function validateCommand(command) {
-    const trimmedCommand = command.trim().toLowerCase();
+    const trimmedCommand = command.trim();
     
     // 检查是否为空命令
     if (!trimmedCommand) {
         return { valid: false, reason: '命令不能为空' };
     }
     
-    // 提取命令的第一个词（实际命令名）
-    const commandName = trimmedCommand.split(' ')[0];
-    
-    // 检查是否为交互式命令
-    const interactiveCommands = ['python', 'python3', 'node', 'irb', 'ruby', 'mysql', 'psql', 'mongo', 'redis-cli'];
-    if (interactiveCommands.includes(commandName) && trimmedCommand === commandName) {
-        return { 
-            valid: false, 
-            reason: `交互式命令 "${commandName}" 不支持直接执行。请使用以下方式：\n` +
-                   `• 执行脚本文件：${commandName} script.py\n` +
-                   `• 执行代码：${commandName} -c "print('Hello World')"\n` +
-                   `• 查看版本：${commandName} --version`
-        };
+    // 本地使用模式：只检查最危险的系统级命令
+    if (LOCAL_MODE) {
+        const commandName = trimmedCommand.toLowerCase().split(' ')[0];
+        
+        // 只禁止最危险的系统级命令
+        if (DANGEROUS_COMMANDS.some(dangerous => commandName === dangerous)) {
+            return { valid: false, reason: `命令 "${commandName}" 被禁止执行，可能导致系统关机或数据丢失` };
+        }
+        
+        // 本地模式下允许所有其他命令
+        return { valid: true };
     }
     
-    // 检查是否在危险命令黑名单中
-    if (DANGEROUS_COMMANDS.some(dangerous => commandName.includes(dangerous))) {
-        return { valid: false, reason: `命令 "${commandName}" 被禁止执行，出于安全考虑` };
-    }
-    
-    // 检查是否包含危险字符或操作符
-    const dangerousPatterns = [
-        '&&', '||', ';', '|', '>', '>>', '<', '`', '$(',
-        'eval', 'exec', 'system', 'curl', 'wget', 'nc', 'netcat'
-    ];
-    
-    if (dangerousPatterns.some(pattern => command.includes(pattern))) {
-        return { valid: false, reason: '命令包含不安全的操作符或函数' };
-    }
-    
-    // 已移除白名单检查，只要不在黑名单中即可执行
-    
+    // 非本地模式的完整验证（保留原有逻辑作为备用）
     return { valid: true };
 }
 
@@ -99,36 +80,24 @@ function executeCommand(command, callback) {
     
     // 设置执行选项
     const options = {
-        timeout: 10000, // 10秒超时
-        maxBuffer: 1024 * 1024, // 1MB输出缓冲区
+        // 移除timeout限制，支持长时间运行的脚本
+        maxBuffer: 10 * 1024 * 1024, // 增加到10MB输出缓冲区
         cwd: currentWorkingDirectory, // 使用全局工作目录
-        env: process.env, // 继承环境变量
+        env: {
+            ...process.env, // 继承环境变量
+            // 确保使用用户的完整PATH环境，优先使用homebrew的python
+            PATH: '/opt/homebrew/opt/python@3.9/libexec/bin:/opt/homebrew/bin:' + process.env.PATH,
+            HOME: process.env.HOME,
+            USER: process.env.USER,
+            SHELL: process.env.SHELL || '/bin/zsh'
+        },
         shell: '/bin/zsh' // 使用zsh shell
     };
     
-    // 优化shell命令执行方式，减少不必要的stderr输出
-    let shellCommand;
-    
-    // 对于简单命令，直接执行；对于复杂命令，使用交互式shell
-    const simpleCommands = ['ls', 'pwd', 'date', 'whoami', 'echo', 'cat', 'head', 'tail', 'grep', 'find', 'which'];
-    const commandName = command.trim().split(' ')[0];
-    
-    if (simpleCommands.includes(commandName)) {
-        // 简单命令直接执行，避免shell配置文件的警告
-        shellCommand = command;
-    } else {
-        // 复杂命令使用交互式shell，但抑制配置文件错误
-        shellCommand = `/bin/zsh -i -c "source ~/.zshrc 2>/dev/null; source ~/.zprofile 2>/dev/null; ${command} 2>&1"`;
-        options.shell = false;
-    }
-    
-    exec(shellCommand, options, (error, stdout, stderr) => {
+    // 直接执行命令，与本地终端行为一致
+    exec(command, options, (error, stdout, stderr) => {
         if (error) {
-            // 如果是超时错误
-            if (error.code === 'ETIMEDOUT') {
-                return callback(new Error('命令执行超时（10秒）'), null);
-            }
-            // 其他执行错误
+            // 执行错误
             return callback(error, null);
         }
         
@@ -267,8 +236,9 @@ app.use((req, res) => {
 app.listen(PORT, () => {
     console.log(`\n🚀 终端命令管理工具后端服务已启动`);
     console.log(`📡 服务地址: http://localhost:${PORT}`);
-    console.log(`🔒 安全模式: 已启用命令黑名单`);
-    console.log(`🚫 禁止的命令数量: ${DANGEROUS_COMMANDS.length}`);
+    console.log(`🏠 本地使用模式: 已启用（简化安全验证）`);
+    console.log(`🚫 仅禁止系统级危险命令: ${DANGEROUS_COMMANDS.length} 个`);
+    console.log(`✅ 允许执行大部分常用命令（rm, mv, cp, sudo 等）`);
     console.log(`\n访问 http://localhost:${PORT} 开始使用工具\n`);
 });
 

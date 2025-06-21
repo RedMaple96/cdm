@@ -419,17 +419,106 @@ function handleGroupNameKeyPress(event) {
  */
 function updateCommandSelector() {
     const selector = document.getElementById('select-command');
+    const groupFilter = document.getElementById('select-group-filter');
+    
+    // 更新分组筛选器
+    updateGroupFilter();
+    
+    // 获取当前选中的分组筛选
+    const selectedGroup = groupFilter ? groupFilter.value : '';
     
     // 清空现有选项
     selector.innerHTML = '<option value="">请选择要执行的命令</option>';
     
+    // 根据分组筛选命令
+    const filteredCommands = selectedGroup ? 
+        commands.filter(command => command.group === selectedGroup) : 
+        commands;
+    
     // 添加命令选项
-    commands.forEach(command => {
+    filteredCommands.forEach(command => {
         const option = document.createElement('option');
         option.value = command.id;
         option.textContent = `${command.name} - ${command.description || '无描述'}`;
+        // 添加分组信息到选项文本中
+        if (!selectedGroup) {
+            option.textContent += ` [${command.group}]`;
+        }
         selector.appendChild(option);
     });
+}
+
+/**
+ * 更新分组筛选器选项
+ */
+function updateGroupFilter() {
+    const groupFilter = document.getElementById('select-group-filter');
+    if (!groupFilter) return;
+    
+    const currentValue = groupFilter.value;
+    
+    // 清空现有选项
+    groupFilter.innerHTML = '<option value="">显示所有分组</option>';
+    
+    // 添加所有分组选项
+    commandGroups.forEach(group => {
+        const option = document.createElement('option');
+        option.value = group;
+        option.textContent = group;
+        groupFilter.appendChild(option);
+    });
+    
+    // 恢复之前的选择
+    groupFilter.value = currentValue;
+}
+
+/**
+ * 按分组筛选命令
+ */
+function filterCommandsByGroup() {
+    const groupFilter = document.getElementById('select-group-filter');
+    const commandSelector = document.getElementById('select-command');
+    const presetCommandInput = document.getElementById('preset-command');
+    
+    if (!groupFilter || !commandSelector) return;
+    
+    const selectedGroup = groupFilter.value;
+    
+    // 清空命令选择器和输入框
+    commandSelector.innerHTML = '<option value="">请选择要执行的命令</option>';
+    if (presetCommandInput) {
+        presetCommandInput.value = '';
+        presetCommandInput.placeholder = '选择预配置命令后可在此编辑';
+    }
+    
+    // 根据分组筛选命令
+    const filteredCommands = selectedGroup ? 
+        commands.filter(command => command.group === selectedGroup) : 
+        commands;
+    
+    // 添加筛选后的命令选项
+    filteredCommands.forEach(command => {
+        const option = document.createElement('option');
+        option.value = command.id;
+        option.textContent = `${command.name} - ${command.description || '无描述'}`;
+        // 如果显示所有分组，添加分组信息
+        if (!selectedGroup) {
+            option.textContent += ` [${command.group}]`;
+        }
+        commandSelector.appendChild(option);
+    });
+    
+    // 显示筛选结果提示
+    const totalCommands = commands.length;
+    const filteredCount = filteredCommands.length;
+    
+    if (selectedGroup && filteredCount === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = `该分组暂无命令`;
+        option.disabled = true;
+        commandSelector.appendChild(option);
+    }
 }
 
 /**
@@ -511,8 +600,7 @@ function executeUnifiedCommand() {
     };
     
     // 显示加载状态
-    const outputElement = document.getElementById('command-output');
-    outputElement.innerHTML = `<div class="loading"></div> 正在执行命令: ${commandText}...`;
+    addRunningLog('info', `正在执行命令: ${commandText}...`);
     
     // 调用后端API执行真实命令
     executeRealCommand(command);
@@ -575,7 +663,9 @@ function refreshCurrentDirectory() {
  * @param {Object} command - 命令对象
  */
 function executeRealCommand(command) {
-    const outputElement = document.getElementById('command-output');
+    // 记录开始执行日志
+    addRunningLog('command', `执行命令: ${command.content}`);
+    addRunningLog('info', '正在连接后端服务...');
     
     // 调用后端API执行命令
     fetch('/api/execute', {
@@ -587,13 +677,19 @@ function executeRealCommand(command) {
             command: command.content
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        addRunningLog('info', '后端服务响应成功，正在处理结果...');
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // 执行成功
+            addRunningLog('success', '命令执行成功！');
+            
             let result = '';
             
             if (data.stdout) {
+                addRunningLog('output', `标准输出:\n${data.stdout}`);
                 result += data.stdout;
             }
             
@@ -607,14 +703,51 @@ function executeRealCommand(command) {
                                     stderr.includes('deprecated') ||
                                     stderr.startsWith('zsh:') ||
                                     stderr.includes('alias') ||
-                                    stderr.includes('function');
+                                    stderr.includes('function') ||
+                                    stderr.includes('[DEBUG]') ||
+                                    stderr.includes('[INFO]') ||
+                                    stderr.includes('[VERBOSE]') ||
+                                    stderr.includes('adb devices') ||
+                                    stderr.includes('adb shell') ||
+                                    stderr.includes('airtest.core') ||
+                                    stderr.includes('platform-tools') ||
+                                    stderr.includes('wait-for-device') ||
+                                    stderr.includes('getprop') ||
+                                    stderr.includes('monkey') ||
+                                    stderr.includes('finding:') ||
+                                    stderr.includes('Template(') ||
+                                    stderr.includes('try finding:');
                 
                 if (isWarningOnly) {
-                    // 如果只是警告信息，以较温和的方式显示
-                    result += result ? '\n\n' : '';
-                    result += '⚠️ 提示信息:\n' + stderr;
+                    // 判断是调试信息还是警告信息
+                    const isDebugInfo = stderr.includes('[DEBUG]') || 
+                                      stderr.includes('[INFO]') || 
+                                      stderr.includes('[VERBOSE]') ||
+                                      stderr.includes('adb devices') ||
+                                      stderr.includes('adb shell') ||
+                                      stderr.includes('airtest.core') ||
+                                      stderr.includes('platform-tools') ||
+                                      stderr.includes('wait-for-device') ||
+                                      stderr.includes('getprop') ||
+                                      stderr.includes('monkey') ||
+                                      stderr.includes('finding:') ||
+                                      stderr.includes('Template(') ||
+                                      stderr.includes('try finding:');
+                    
+                    if (isDebugInfo) {
+                        // 调试信息以info方式显示
+                        addRunningLog('info', `调试信息:\n${stderr}`);
+                        result += result ? '\n\n' : '';
+                        result += '🔍 调试信息:\n' + stderr;
+                    } else {
+                        // 警告信息以warning方式显示
+                        addRunningLog('warning', `警告信息:\n${stderr}`);
+                        result += result ? '\n\n' : '';
+                        result += '⚠️ 提示信息:\n' + stderr;
+                    }
                 } else {
                     // 真正的错误信息
+                    addRunningLog('error', `错误输出:\n${stderr}`);
                     result += result ? '\n\n' : '';
                     result += '❌ 错误输出:\n' + stderr;
                 }
@@ -622,29 +755,33 @@ function executeRealCommand(command) {
             
             if (!result.trim()) {
                 result = '命令执行完成（无输出）';
+                addRunningLog('info', '命令执行完成（无输出）');
             }
             
             // 显示当前工作目录
             if (data.currentDirectory) {
-                result += `\n\n📁 当前目录: ${data.currentDirectory}`;
-            }
+                addRunningLog('info', `当前工作目录: ${data.currentDirectory}`);
+                }
             
-            result += `\n⏰ 执行时间: ${formatDate(data.timestamp)}`;
-            result += '\n✅ 状态: 成功';
-            
-            outputElement.textContent = result;
+            addRunningLog('info', `⏰ 执行时间: ${formatDate(data.timestamp)}`);
+            addRunningLog('success', '✅ 状态: 成功');
             
             // 如果是cd命令，刷新目录显示
             if (command.content.trim().startsWith('cd ')) {
+                addRunningLog('info', '检测到cd命令，刷新目录显示...');
                 refreshCurrentDirectory();
             }
+            
+            addRunningLog('success', '命令执行流程完成');
             
             // 添加到执行历史
             addToHistory(command, result);
         } else {
             // 执行失败
+            addRunningLog('error', `命令执行失败: ${data.error}`);
+            addRunningLog('info', `⏰ 执行时间: ${formatDate(data.timestamp)}`);
+            addRunningLog('error', '❌ 状态: 失败');
             const errorResult = `❌ 命令执行失败\n\n🚫 错误信息: ${data.error}\n⏰ 执行时间: ${formatDate(data.timestamp)}\n❌ 状态: 失败`;
-            outputElement.textContent = errorResult;
             
             // 添加到执行历史
             addToHistory(command, errorResult);
@@ -652,8 +789,11 @@ function executeRealCommand(command) {
     })
     .catch(error => {
         console.error('API调用失败:', error);
+        addRunningLog('error', `网络错误: ${error.message}`);
+        addRunningLog('error', '无法连接到后端服务，请检查服务状态');
+        addRunningLog('error', '💡 请确保：1. Node.js后端服务已启动 2. 服务运行在 http://localhost:3000 3. 网络连接正常');
+        
         const errorResult = `🌐 网络错误或服务器未启动\n\n🚫 错误信息: ${error.message}\n\n💡 请确保：\n1. Node.js后端服务已启动 (npm start)\n2. 服务运行在 http://localhost:3000\n3. 网络连接正常`;
-        outputElement.textContent = errorResult;
         
         // 添加到执行历史
         addToHistory(command, errorResult);
@@ -754,13 +894,122 @@ function clearAllData() {
     if (confirm('确定要清空所有数据吗？此操作不可恢复！')) {
         localStorage.removeItem('terminalCommands');
         localStorage.removeItem('executionHistory');
+        localStorage.removeItem('commandGroups');
         commands = [];
         executionHistory = [];
+        commandGroups = ['默认分组'];
         renderCommands();
         updateCommandSelector();
         renderExecutionHistory();
+        renderGroups();
+        updateGroupSelector();
         alert('所有数据已清空！');
     }
+}
+
+/**
+ * 导出配置数据到JSON文件
+ */
+function exportData() {
+    try {
+        const exportData = {
+            commands: commands,
+            commandGroups: commandGroups,
+            executionHistory: executionHistory,
+            exportTime: new Date().toISOString(),
+            version: '1.0'
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `terminal-commands-backup-${new Date().toISOString().split('T')[0]}.json`;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        alert('配置数据导出成功！');
+    } catch (error) {
+        console.error('导出数据失败:', error);
+        alert('导出数据失败：' + error.message);
+    }
+}
+
+/**
+ * 触发文件选择对话框进行数据导入
+ */
+function importData() {
+    const fileInput = document.getElementById('import-file');
+    fileInput.click();
+}
+
+/**
+ * 处理文件导入
+ * @param {Event} event - 文件选择事件
+ */
+function handleFileImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.type !== 'application/json') {
+        alert('请选择JSON格式的配置文件！');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importData = JSON.parse(e.target.result);
+            
+            // 验证数据格式
+            if (!importData.commands || !Array.isArray(importData.commands)) {
+                throw new Error('无效的配置文件格式：缺少commands数组');
+            }
+            
+            // 确认导入
+            const confirmMessage = `确定要导入配置吗？\n\n导入内容：\n- 命令数量：${importData.commands.length}\n- 分组数量：${importData.commandGroups ? importData.commandGroups.length : 0}\n- 执行历史：${importData.executionHistory ? importData.executionHistory.length : 0}条\n\n注意：这将覆盖当前所有配置！`;
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+            
+            // 导入数据
+            commands = importData.commands || [];
+            commandGroups = importData.commandGroups || ['默认分组'];
+            executionHistory = importData.executionHistory || [];
+            
+            // 确保默认分组存在
+            if (!commandGroups.includes('默认分组')) {
+                commandGroups.unshift('默认分组');
+            }
+            
+            // 保存到本地存储
+            saveCommands();
+            saveGroups();
+            localStorage.setItem('executionHistory', JSON.stringify(executionHistory));
+            
+            // 重新渲染界面
+            renderCommands();
+            updateCommandSelector();
+            renderExecutionHistory();
+            renderGroups();
+            updateGroupSelector();
+            
+            alert('配置导入成功！');
+            
+        } catch (error) {
+            console.error('导入数据失败:', error);
+            alert('导入数据失败：' + error.message);
+        }
+    };
+    
+    reader.readAsText(file);
+    
+    // 清空文件输入框，允许重复选择同一文件
+    event.target.value = '';
 }
 
 /**
@@ -888,11 +1137,127 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // 初始化运行日志
+    initRunningLog();
+    
     // 检查后端服务状态
     setTimeout(checkServerStatus, 1000);
 });
 
 // 导出函数供全局使用
+// 运行日志相关变量
+let autoScroll = true;
+let runningLogs = [];
+
+/**
+ * 添加运行日志
+ * @param {string} type - 日志类型 ('info', 'success', 'warning', 'error', 'command', 'output')
+ * @param {string} message - 日志消息
+ */
+function addRunningLog(type, message) {
+    const timestamp = new Date();
+    const timeString = timestamp.toLocaleTimeString('zh-CN', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        fractionalSecondDigits: 3
+    });
+    
+    const logEntry = {
+        id: Date.now() + Math.random(),
+        type: type,
+        message: message,
+        timestamp: timestamp,
+        timeString: timeString
+    };
+    
+    runningLogs.push(logEntry);
+    
+    // 限制日志数量（最多保留200条）
+    if (runningLogs.length > 200) {
+        runningLogs = runningLogs.slice(-200);
+    }
+    
+    // 渲染日志
+    renderRunningLog(logEntry);
+    
+    // 自动滚动到底部
+    if (autoScroll) {
+        scrollLogToBottom();
+    }
+}
+
+/**
+ * 渲染单条运行日志
+ * @param {Object} logEntry - 日志条目
+ */
+function renderRunningLog(logEntry) {
+    const logContainer = document.getElementById('running-log-content');
+    
+    const logElement = document.createElement('div');
+    logElement.className = `log-entry log-${logEntry.type}`;
+    logElement.innerHTML = `
+        <span class="log-time">[${logEntry.timeString}]</span>
+        <span class="log-message">${escapeHtml(logEntry.message)}</span>
+    `;
+    
+    logContainer.appendChild(logElement);
+}
+
+/**
+ * 清空运行日志
+ */
+function clearRunningLog() {
+    runningLogs = [];
+    const logContainer = document.getElementById('running-log-content');
+    logContainer.innerHTML = `
+        <div class="log-entry log-info">
+            <span class="log-time">[清空]</span>
+            <span class="log-message">运行日志已清空</span>
+        </div>
+    `;
+    addRunningLog('info', '等待执行命令...');
+}
+
+/**
+ * 切换自动滚动
+ */
+function toggleAutoScroll() {
+    autoScroll = !autoScroll;
+    const button = document.getElementById('auto-scroll-btn');
+    button.textContent = `自动滚动: ${autoScroll ? '开' : '关'}`;
+    button.className = `btn btn-small ${autoScroll ? '' : 'btn-secondary'}`;
+    
+    if (autoScroll) {
+        scrollLogToBottom();
+    }
+}
+
+/**
+ * 滚动日志到底部
+ */
+function scrollLogToBottom() {
+    const logContainer = document.getElementById('log-container');
+    if (logContainer) {
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+}
+
+/**
+ * 初始化运行日志
+ */
+function initRunningLog() {
+    // 清空现有日志显示
+    const logContainer = document.getElementById('running-log-content');
+    if (logContainer) {
+        logContainer.innerHTML = '';
+        addRunningLog('info', '运行日志系统已初始化');
+        addRunningLog('info', '等待执行命令...');
+    }
+}
+
+// 导出函数到全局作用域
 window.switchTab = switchTab;
 window.addCommand = addCommand;
 window.editCommand = editCommand;
@@ -900,4 +1265,19 @@ window.deleteCommand = deleteCommand;
 window.executeCommand = executeCommand;
 window.executeQuickCommand = executeQuickCommand;
 window.clearAllData = clearAllData;
+window.exportData = exportData;
+window.importData = importData;
+window.handleFileImport = handleFileImport;
 window.checkServerStatus = checkServerStatus;
+window.filterCommandsByGroup = filterCommandsByGroup;
+window.addGroup = addGroup;
+window.deleteGroup = deleteGroup;
+window.handleGroupNameKeyPress = handleGroupNameKeyPress;
+window.switchView = switchView;
+window.loadSelectedCommand = loadSelectedCommand;
+window.executeUnifiedCommand = executeUnifiedCommand;
+window.switchInputMode = switchInputMode;
+window.refreshCurrentDirectory = refreshCurrentDirectory;
+window.clearRunningLog = clearRunningLog;
+window.toggleAutoScroll = toggleAutoScroll;
+window.initRunningLog = initRunningLog;
